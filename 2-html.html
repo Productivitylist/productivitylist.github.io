@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Productivity Goals</title>
+    <style>
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #666;
+        }
+        .goal-container {
+            margin-bottom: 20px;
+        }
+        .goal-container p {
+            margin: 5px 0;
+        }
+        .high-priority {
+            color: red;
+        }
+        .medium-priority {
+            color: orange;
+        }
+        .low-priority {
+            color: green;
+        }
+        .completed-goal {
+            text-decoration: line-through;
+        }
+        .completed-goal span {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Productivity Goals</h1>
+
+    <div id="buttons">
+        <button onclick="openAddGoalPopup()">Add Goal</button>
+        <button onclick="markGoalAsCompleted()">Mark as Completed</button>
+    </div>
+
+    <h2>Upcoming Goals:</h2>
+    <div class="goal-container">
+        <ul id="upcoming-goals">
+            <!-- Upcoming goals will be dynamically added here -->
+        </ul>
+    </div>
+
+    <h2>Ongoing Goals:</h2>
+    <div class="goal-container">
+        <ul id="ongoing-goals">
+            <!-- Ongoing goals will be dynamically added here -->
+        </ul>
+    </div>
+
+    <h2>Completed Goals:</h2>
+    <div class="goal-container">
+        <ul id="completed-goals">
+            <!-- Completed goals will be dynamically added here -->
+        </ul>
+    </div>
+
+    <!-- Add goal popup form -->
+    <div id="add-goal-popup" style="display: none;">
+        <form>
+            <label for="goal-name">Goal Name:</label>
+            <input type="text" id="goal-name" required>
+
+            <label for="goal-date">Date:</label>
+            <input type="date" id="goal-date" required>
+
+            <label for="goal-time">Time:</label>
+            <input type="time" id="goal-time" required>
+
+            <label for="goal-repeat">Repeat:</label>
+            <input type="checkbox" id="goal-repeat">
+
+            <button type="submit">Add Goal</button>
+        </form>
+    </div>
+
+    <script>
+        // Load goals from local storage on page load
+        window.onload = function() {
+            loadGoals();
+        };
+
+        function openAddGoalPopup() {
+            var popup = document.getElementById("add-goal-popup");
+            popup.style.display = "block";
+        }
+
+        function markGoalAsCompleted() {
+            // Code to mark the selected goal as completed
+        }
+
+        function saveGoals(goals) {
+            localStorage.setItem("goals", JSON.stringify(goals));
+        }
+
+        function loadGoals() {
+            var goals = JSON.parse(localStorage.getItem("goals"));
+            if (goals) {
+                goals.forEach(function(goal) {
+                    var goalElement = createGoalElement(goal);
+                    if (goal.completed) {
+                        goalElement.classList.add("completed-goal");
+                    }
+
+                    if (goal.completed) {
+                        document.getElementById("completed-goals").appendChild(goalElement);
+                    } else {
+                        var currentDatetime = new Date();
+                        var completionDatetime = new Date(goal.date + " " + goal.time);
+                        if (completionDatetime > currentDatetime) {
+                            document.getElementById("upcoming-goals").appendChild(goalElement);
+                        } else if (completionDatetime < currentDatetime) {
+                            document.getElementById("completed-goals").appendChild(goalElement);
+                        } else {
+                            document.getElementById("ongoing-goals").appendChild(goalElement);
+                        }
+                    }
+                });
+            }
+        }
+
+        function addGoal() {
+            var goalName = document.getElementById("goal-name").value;
+            var goalDate = document.getElementById("goal-date").value;
+            var goalTime = document.getElementById("goal-time").value;
+            var goalRepeat = document.getElementById("goal-repeat").checked;
+
+            var goal = {
+                name: goalName,
+                date: goalDate,
+                time: goalTime,
+                repeat: goalRepeat,
+                completed: false
+            };
+
+            var goalElement = createGoalElement(goal);
+
+            if (goal.completed) {
+                goalElement.classList.add("completed-goal");
+                document.getElementById("completed-goals").appendChild(goalElement);
+            } else {
+                var currentDatetime = new Date();
+                var completionDatetime = new Date(goal.date + " " + goal.time);
+                if (completionDatetime > currentDatetime) {
+                    document.getElementById("upcoming-goals").appendChild(goalElement);
+                } else if (completionDatetime < currentDatetime) {
+                    document.getElementById("completed-goals").appendChild(goalElement);
+                } else {
+                    document.getElementById("ongoing-goals").appendChild(goalElement);
+                }
+            }
+
+            var goals = JSON.parse(localStorage.getItem("goals")) || [];
+            goals.push(goal);
+            saveGoals(goals);
+        }
+
+        function createGoalElement(goal) {
+            var goalElement = document.createElement("li");
+            goalElement.innerText = goal.name;
+
+            var completionDatetime = new Date(goal.date + " " + goal.time);
+
+            if (goal.repeat) {
+                goalElement.innerHTML += "<span>(Repeat)</span>";
+            }
+
+            if (completionDatetime < new Date()) {
+                goalElement.classList.add("completed-goal");
+            }
+
+            return goalElement;
+        }
+
+        document.getElementById("add-goal-popup").addEventListener("submit", function(e) {
+            e.preventDefault();
+            addGoal();
+            document.getElementById("add-goal-popup").style.display = "none";
+            document.getElementById("add-goal-popup").reset();
+        });
+    </script>
+</body>
+</html>
